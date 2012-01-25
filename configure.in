@@ -1,0 +1,151 @@
+# Copyright (C) 2000 MySQL AB & MySQL Finland AB & TCX DataKonsult AB
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+# Process this file with autoconf to produce a configure script.
+
+AC_INIT()
+AM_CONFIG_HEADER(config.h)
+AM_INIT_AUTOMAKE(super-smack, 1.1)
+AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
+
+# Checks for programs.
+AC_CHECK_PROG(SHELL, sh)
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AM_PROG_LEX
+AC_PROG_YACC
+
+# get super-smack datadir
+AC_ARG_WITH(datadir,
+[  --with-datadir=DIR      Specify default smack datadir],
+[
+ DATADIR="${withval}"
+],
+[
+ DATADIR=/var/smack-data
+])
+
+AC_ARG_WITH(smacks-dir,
+[  --with-smacks-dir=DIR   Directory to install example smacks],
+[
+ SMACKS_DIR="${withval}"
+],
+[
+ SMACKS_DIR=/usr/share/smacks
+])
+
+AC_SUBST(SMACKS_DIR)
+AC_DEFINE_UNQUOTED(SMACK_DATADIR, "$DATADIR")
+AC_SUBST(DATADIR)
+
+
+# Various APIs we support
+
+# MySQL
+want_mysql="no"
+AC_ARG_WITH(mysql,
+[  --with-mysql            Build with MySQL support],
+[
+  AC_DEFINE(HAVE_MYSQL)
+  want_mysql="yes"
+])
+
+# PostgreSQL
+want_pgsql="no"
+AC_ARG_WITH(pgsql,
+[  --with-pgsql            Build with PostgreSQL support],
+[
+  AC_DEFINE(HAVE_PGSQL)
+  want_pgsql="yes"
+])
+
+# Oracle
+want_oracle="no"
+AC_ARG_WITH(oracle,
+[  --with-oracle           Build with Oracle support],
+[
+  AC_DEFINE(HAVE_ORACLE)
+  want_oracle="yes"
+])
+
+
+# Checks for libraries.
+AC_LIB_Z
+
+# Checks for functions.
+AC_FUNC_CRYPT
+
+# Checks for APIs
+
+# MySQL
+AC_LIB_MYSQL
+AC_HEADER_MYSQL
+
+# PostgreSQL
+AC_LIB_PGSQL
+AC_HEADER_PGSQL
+
+# Oracle
+AC_LIB_ORACLE
+AC_HEADER_ORACLE
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(sys/time.h unistd.h)
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_HEADER_TIME
+
+# Checks for library functions.
+AC_TYPE_SIGNAL
+AC_CHECK_FUNCS(gettimeofday strerror)
+
+# Check to see if we are building with any support...
+
+if test "x$want_mysql"  != "xyes" \
+     -a "x$want_pgsql"  != "xyes" \
+     -a "x$want_oracle" != "xyes"
+then
+        AC_MSG_ERROR([
+
+You should include support for at least one database!
+
+Reconfigure with one or more of:
+  --with-mysql
+  --with-pgsql
+  --with-oracle
+])
+fi
+
+AC_OUTPUT(Makefile src/Makefile)
+
+cat <<EOS
+
+
+Building with the following options:
+
+MySQL Support..................... $want_mysql
+PostgreSQL Support................ $want_pgsql
+Oracle Support.................... $want_oracle
+
+If this is not what you intended, please re-run configure.
+
+Thanks for using super-smack!
+
+EOS

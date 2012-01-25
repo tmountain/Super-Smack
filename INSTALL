@@ -1,0 +1,77 @@
+To build and install super-smack:
+
+./configure --with-mysql --with-pgsql
+
+if you have client libraries for both MySQL and PostgreSQL,
+if you don't, keep only the one you have. You may need to specify the
+directory explicitly if your client libraries are installed in some
+unusual location, eg
+
+./configure --with-mysql=/opt/mysql
+
+If you want to have different locations for the examples directory and/or
+data directory, you should use --with-smacks-dir and --with-datadir
+respectively. Defaults are /usr/share/smacks and /var/smack-data.
+
+You will need to do this if you do not have root on the machine.
+In that case, you should also use --prefix option to change the installation
+directory from /usr/local to some path where you can write.
+
+make
+su
+make install
+
+You may need to modify ownership and/or permissions on /var/smack-data if
+you installed as root with defaults, but are running benchmarks as a
+non-root Unix user ( recommended). The user you run super-smack as needs to
+be able to write to the super-smack data directory ( /var/smack-data) - not
+to be confused with MySQL data directory, which is something completely
+different.
+
+The build should go smoothly on Linux, with the exception of RedHat 7 with the
+default compiler, which is full of bugs. If you have RedHat 7, uninistall the
+supplied gcc (with C++ part), and install gcc 2.95.2 instead (with C++
+support).
+
+I have not yet done any specific ports, so it may need some tweaking of
+the source to make it work on other platforms. Please email me the patches
+that you needed to add for your system. When you are finished with the
+build/install, read the tutorial and the manual.
+
+
+--IF YOU'RE COMPILING UNDER SOLARIS:
+
+I've not quite got the hange of creating configure scripts and such, so some fixes
+will have to be done manually.  Here are the fixes necessary from Dan Price after ./configure is run to get super-smack 1.3 to build properly under Solaris:
+
+		- Set your PATH to: /usr/bin:/usr/sbin:/usr/sfw/bin:/usr/ccs/bin
+          before running configure.  On FCS S10, I think this should get
+          the right results.
+
+        - You'll need to add '-lsocket -lnsl' to the link line of the
+          src/Makefile after you've run configure.  (autoconf should
+          take care of this but I didn't have time to work out how to
+          make it do that).
+          
+          Your LIBS line in src/Makefile should end up like this:
+
+          LIBS = -L/usr/sfw/lib/ -lcrypt -lz  -lsocket -lnsl
+
+        - If you lose the copy of super-smack-yacc.cc which comes with
+          the distro (i.e. if you type 'make clean'), bison may output
+          strange C which doesn't compile properly.  Basically, if you
+          get this error:
+
+          y.tab.c:1783: error: expected primary-expression before "__attribute__"
+
+          Then edit super-smack-yacc.cc and delete the offending line
+          (the one containing the string "__attribute__"); it's a no-op
+          anyway.
+
+
+
+
+
+
+
+

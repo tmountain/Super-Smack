@@ -1,0 +1,109 @@
+// this is will be used in the table section
+client "admin"
+{
+ user "root";
+ host "localhost";
+ db "test";
+ pass "";
+ socket "/tmp/mysql.sock"; // this only applies to MySQL and is
+// ignored for PostgreSQL
+}
+
+// ensure the table exists and meets the conditions
+table "http_auth"
+{
+  client "admin"; // connect with this client
+ // if the table is not found or does not pass the checks, create it
+ // with the following, dropping the old one if needed
+  create "create table http_auth
+    (username char(25) not null primary key,
+     pass char(25),
+     uid integer not null,
+     gid integer not null
+    )";
+  min_rows "90000"; // the table must have at least that many rows
+  data_file "words.dat"; // if the table is empty, load the data from
+//this file
+  gen_data_file "gen-data -n 90000 -f %12-12s%n,%25-25s,%n,%d";
+// if the file above does not exist, generate it with the above command
+}
+
+
+//define a dictionary
+dictionary "word"
+{
+  type "rand"; // words are retrieved in random order
+  source_type "file"; // words come from a file
+  source "words.dat"; // file location
+  delim ","; // take the part of the line before ,
+  file_size_equiv "45000"; // if the file is greater than this
+//divive the real file size by this value obtaining N and take every Nth
+//line skipping others
+}  
+
+//define a query
+query "select_by_username"
+{
+  query "select * from http_auth where username = '$word'";
+// $word will be substitute with the read from the 'word' dictionary
+  type "select_index";
+// query stats will be grouped by type
+  has_result_set "y";
+// the query is expected to return a result set
+  parsed "y";
+// the query string should be first processed by super-smack to do
+// dictionary substitution
+}
+
+query "update_by_username"
+{
+  query "update http_auth set pass='$word' where username = '$word'";
+// $word will be substitute with the read from the 'word' dictionary
+// note that the first word is not the same as the second, as each is
+// a separate random draw from the dictionary
+  type "update_index";
+// query stats will be grouped by type
+  has_result_set "y";
+// the query is expected to return a result set
+  parsed "y";
+// the query string should be first processed by super-smack to do
+// dictionary substitution
+}
+
+
+// define database client type
+client "smacker"
+{
+ user "test"; // connect as this user
+ pass ""; // use this password
+ host "localhost"; // connect to this host
+ db "test"; // switch to this database
+ socket "/tmp/mysql.sock"; // this only applies to MySQL and is
+// ignored for PostgreSQL
+ query_barrel "1 select_by_username 1 update_by_username"; // on each round,
+// run select_by_username query followed by update_by_username
+}
+
+main
+ {
+
+  smacker.init(); // initialize the clients
+  smacker.set_num_rounds($2); // second arg on the command line defines
+// the number of rounds for each client
+  smacker.set_num_rounds($2);
+  smacker.create_threads($1);
+// first argument on the command line defines how many client instances
+// to fork. Anything after this will be done once for each client until
+// you collect the threads
+  smacker.connect();
+// you must connect after you fork 
+  smacker.unload_query_barrel(); // for each client fire the query barrel
+// it will now do the number of rounds specified by set_num_rounds()
+// on each round, query_barrel of the client is executed
+
+  smacker.collect_threads();
+// the master thread waits for the children, each child reports the stats
+// the stats are printed
+  smacker.disconnect();
+// the children now disconnect and exit
+ }

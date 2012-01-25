@@ -1,0 +1,84 @@
+The purpose of this tutorial is to get you to the point where you can write
+your own benchmarks by the time you get through it. If you feel so inclined,
+you can skip it and just read the example .smack files, as well as the source.
+
+Let us begin by running the supplied examples on your system:
+
+First make sure the directory where super-smack and gen-data get installed is
+in your path. Default is /usr/local/bin. So if you did not change the
+installation directory with a special configure option, you would do:
+
+echo $PATH
+if /usr/local/bin is not in it
+PATH=$PATH:/usr/local/bin
+export PATH
+
+Then copy the example smack file and edit the database access information
+in it. Defaults assume that you have a user root with super user privileges
+that connects to localhost and database test with no password, and you have
+a regular user test that connects to localhost with no password. If this is
+not the case, search for "client" in the smack file, and change the
+connectivity parameters to what is appropriate for your system. For example,
+you can do the following:
+
+cp /usr/share/smacks/select-key.smack select-key-mysql.smack
+edit select_key_mysql.smack and tell it how to connect to MySQL
+super-smack -d mysql select-key-mysql.smack 10 1000
+
+it will run the benchmark. 10 in this case is the number of clients, and
+100 is the number of rounds per client. To understand how command line
+arguments work in .smack files, search for $1 and $2 in select-key.smack and
+read the comments.
+
+If you get a connection error, double check your connection variables. A very
+common mistake for MySQL is specifying the wrong socket path. In most
+cases, it should be either "/tmp/mysql.sock" or "/var/lib/mysql/mysql.sock".
+If you are confused, try both, for 99% of the installations one of them will
+work. You must also make sure that your MySQL server is actually running.
+
+For PostgreSQL, you can do the following:
+
+cp /usr/share/smacks/select-key.smack select-key-pg.smack
+
+edit  select-key-pg.smack and tell it how to connect to Postgres
+
+super-smack -d pg select-key-pg.smack 10 1000
+
+If you have only MySQL or only Postgres, you should, of course, skip the part
+for the database you do not have, respectively.
+
+super-smack will produce the output similar to this:
+
+Query Barrel Report for client smacker1
+connect: max=62ms  min=0ms avg= 66ms from 10 clients
+Query_type      num_queries     max_time        min_time        q_per_s
+select_index    20000   0       0       4360.61
+
+the actual numbers may differ depending on the speed of your machine.
+
+This means that Super Smack ran 10 clients, the longest time a client took
+to connect was 62 ms, the fastest client connected with no measurable delay,
+and the average connect time was 62 ms. Super Smack clients have executed
+a total of 20000 queries, and each query took less than 1 ms ( we can tell this
+from 0 values for min_time and max_time). From the time the first smacker1
+type client was launched to the time the last smacker1 client reported
+completion of the test, the server carried the load of 4360.61 queries of
+type select_index per second.
+
+The statistics are computed individually for each query type. In this
+example, we had only one query type, but you can have more - see
+update-select.smack for an example. You can also have several client types,
+if you need to.
+
+Now let us get more comfortable with the smack file syntax by doing some
+simple assignments:
+
+1. Currently, http_auth table has 90,000 rows. Modify the example so that
+it will have 200,000. Hint: search for "90000" in select-key.smack
+
+2. Add another column to the table. Hint: drop the table, change create table,
+and modify -f argument to gendata
+
+3. Change the query barrel of smacker1 so that it will delete a random row
+after doing a select on each round. Hint: see update-select.smack.
+

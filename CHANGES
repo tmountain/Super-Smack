@@ -1,0 +1,32 @@
+MySQL Super Smack Changes
+
+2005-05-30
+
+  * Version 1.3 relased.
+
+  * Fixed *BSD compilation -Tony Bourke
+
+  * Changes to allow Solaris compilation -Dan Price
+
+  * Mac OS X compilation support -Josh Varner
+
+  * Fixed default location of socket (/tmp/ versus /var/mysql) -Tony Bourke
+
+  * Fixed PostgreSQL build problem -Tony Bourke
+
+2003-09-02
+
+  * Version 1.2 released.
+
+  * Fixed formatting bugs (whitespace and alignment) in super-smack
+    output.
+
+  * Now builds properly on FreeBSD.
+
+2003-08-24
+
+  * Version 1.1 released.
+
+  * Sasha fixed compilation on newer versions of GCC.
+
+  * New releases hosted on http://jeremy.zawodny.com/mysql/super-smack/
