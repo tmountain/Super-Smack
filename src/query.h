@@ -25,6 +25,7 @@ using namespace std;
 #include <unistd.h>
 #include <map>
 #include <string>
+#include <cstring>
 #include <vector>
 
 class Query
