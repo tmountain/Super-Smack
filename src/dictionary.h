@@ -22,6 +22,7 @@ using namespace std;
 #include "../config.h"
 
 #include <string>
+#include <cstring>
 #include <vector>
 #include <time.h>
 #include <stdlib.h>
